@@ -1,6 +1,6 @@
 import csv
 import pyodbc
-from datetime import date
+from datetime import date,timedelta
 
 
 class DB:
@@ -36,11 +36,11 @@ class DB:
                 output[id]['check_out'] = date
         return output.values()
     def get_checkinout_today(self):  
-        today = date.today().strftime("%m/%d/%Y")
+        today = (date.today() - timedelta(days=1)).strftime("%m/%d/%Y")
         SQL = f'SELECT * FROM checkinout WHERE checktime Between #{today} 00:00:00# And #{today} 23:59:59 PM#;' 
         recs = self.get_cursur().execute(SQL).fetchall()
         return self.format_records(recs)
 
 db = DB()
-# print(db.get_checkinout_today())
+print(db.get_checkinout_today())
 

@@ -21,6 +21,7 @@ class DB:
         return record[0][0]
     def format_time(self,date):
         return date.strftime('%m/%d/%Y %I:%M:%S %p')
+        
     def format_records(self, recs):
         output = {}
         for rec in recs:
@@ -31,16 +32,26 @@ class DB:
                 output[id] = {}
             output[id]['name'] = self.get_user_name_by_id(id)
             if type == 'I':
-                output[id]['check_in'] = date
+                if 'check_in' in output[id]:
+                    output[id]['check_in'] = date if date < output[id]['check_in'] else output[id]['check_in']
+                else:
+                    output[id]['check_in'] = date
             else:
-                output[id]['check_out'] = date
+                if 'check_out' in output[id]:
+                    output[id]['check_out']= date if date > output[id]['check_out'] else output[id]['check_out']
+                else:
+                    output[id]['check_out'] = date        
         return output.values()
-    def get_checkinout_today(self):  
-        today = (date.today() - timedelta(days=1)).strftime("%m/%d/%Y")
-        SQL = f'SELECT * FROM checkinout WHERE checktime Between #{today} 00:00:00# And #{today} 23:59:59 PM#;' 
-        recs = self.get_cursur().execute(SQL).fetchall()
-        return self.format_records(recs)
+    def get_checkinout_today(self):
+        output = []  
+        for day in range(0,30):
+            today = (date.today() - timedelta(days=day)).strftime("%m/%d/%Y")
+            SQL = f'SELECT userid,checktime,checktype FROM checkinout WHERE checktime Between #{today} 00:00:00# And #{today} 23:59:59#;' 
+            recs = self.get_cursur().execute(SQL).fetchall()
+            recs_formated = self.format_records(recs) 
+            [output.append(rec) for rec in recs_formated]
+        return output
 
 db = DB()
-print(db.get_checkinout_today())
+db.get_checkinout_today()
 
